@@ -15,13 +15,17 @@ class AppLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final logoWidth = compact
+        ? (screenWidth < 360 ? 128.0 : 150.0)
+        : (screenWidth < 360 ? 172.0 : 210.0);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
           assetPath,
-          width: compact ? 150 : 210,
+          width: logoWidth,
           fit: BoxFit.contain,
         ),
         if (showSubtitle) ...[

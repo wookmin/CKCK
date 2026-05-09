@@ -132,7 +132,11 @@ class RemoteRoomSocketService implements RoomSocketService {
     required String roomId,
     required String token,
     required UserState user,
-  }) async {}
+  }) async {
+    throw UnimplementedError(
+      'RemoteRoomSocketService.connect will be wired when the backend socket is ready.',
+    );
+  }
 
   @override
   void send(Map<String, dynamic> message) {

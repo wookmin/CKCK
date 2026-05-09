@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:ckck_app/providers/room_provider.dart';
 import 'package:ckck_app/screens/room/time_setting_page.dart';
+import 'package:ckck_app/widgets/adaptive_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -139,6 +140,7 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final responsive = AppResponsive.of(context);
     return Scaffold(
       appBar: _buildAppBar(),
       body: _loading
@@ -254,10 +256,19 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    child: SizedBox(
-                      width: 96,
-                      child: FilledButton(
+                    padding: EdgeInsets.fromLTRB(
+                      responsive.horizontalPadding,
+                      0,
+                      responsive.horizontalPadding,
+                      responsive.isSmallPhone ? 20 : 32,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: responsive.primaryButtonMaxWidth,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFFD9D9D9),
                           foregroundColor: Colors.black,
@@ -267,30 +278,31 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
                             borderRadius: BorderRadius.circular(0),
                           ),
                         ),
-                        onPressed: () {
-                          final jailCenter = _clampToBounds(_selectedCenter);
-                          if (!_isInsideBounds(jailCenter)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('감옥 위치는 게임 범위 안에서만 지정할 수 있어요.'),
+                          onPressed: () {
+                            final jailCenter = _clampToBounds(_selectedCenter);
+                            if (!_isInsideBounds(jailCenter)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('감옥 위치는 게임 범위 안에서만 지정할 수 있어요.'),
+                                ),
+                              );
+                              return;
+                            }
+                            ref
+                                .read(roomProvider.notifier)
+                                .setJailLocation(jailCenter);
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const TimeSettingPage(),
                               ),
                             );
-                            return;
-                          }
-                          ref
-                              .read(roomProvider.notifier)
-                              .setJailLocation(jailCenter);
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const TimeSettingPage(),
+                          },
+                          child: const Text(
+                            '지정',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
                             ),
-                          );
-                        },
-                        child: const Text(
-                          '지정',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),

@@ -1,3 +1,4 @@
+import 'package:ckck_app/core/session/session_store.dart';
 import 'package:ckck_app/core/network/dio_provider.dart';
 import 'package:ckck_app/models/auth_state.dart';
 import 'package:ckck_app/repositories/auth_repository.dart';
@@ -15,13 +16,13 @@ final authProvider =
 class AuthNotifier extends AsyncNotifier<AuthState> {
   @override
   Future<AuthState> build() async {
-    final storage = ref.read(secureStorageProvider);
+    final storage = ref.read(sessionStoreProvider);
     try {
       final token = await storage
-          .read(key: 'accessToken')
+          .read('accessToken')
           .timeout(const Duration(seconds: 1));
       final userId = await storage
-          .read(key: 'userId')
+          .read('userId')
           .timeout(const Duration(seconds: 1));
 
       if (token == null || userId == null) {
@@ -38,19 +39,19 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = ref.read(authRepositoryProvider);
-      final storage = ref.read(secureStorageProvider);
+      final storage = ref.read(sessionStoreProvider);
       final token = await repository.login(id, password);
-      await storage.write(key: 'accessToken', value: token);
-      await storage.write(key: 'userId', value: id);
+      await storage.write('accessToken', token);
+      await storage.write('userId', id);
       return AuthState(accessToken: token, userId: id, isLoggedIn: true);
     });
   }
 
   Future<void> logout() async {
-    final storage = ref.read(secureStorageProvider);
+    final storage = ref.read(sessionStoreProvider);
     await ref.read(authRepositoryProvider).logout();
-    await storage.delete(key: 'accessToken');
-    await storage.delete(key: 'userId');
+    await storage.delete('accessToken');
+    await storage.delete('userId');
     state = const AsyncData(AuthState.unauthenticated());
   }
 }

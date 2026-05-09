@@ -1,3 +1,4 @@
+import 'package:ckck_app/core/links/room_invite_link.dart';
 import 'package:ckck_app/models/player.dart';
 import 'package:ckck_app/providers/auth_provider.dart';
 import 'package:ckck_app/providers/players_provider.dart';
@@ -5,6 +6,7 @@ import 'package:ckck_app/providers/room_provider.dart';
 import 'package:ckck_app/providers/user_provider.dart';
 import 'package:ckck_app/providers/ws_provider.dart';
 import 'package:ckck_app/screens/room/range_setting_page.dart';
+import 'package:ckck_app/widgets/adaptive_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -66,6 +68,7 @@ class _LobbyPageState extends ConsumerState<LobbyPage>
     final user = ref.watch(userProvider);
     final players = ref.watch(playersProvider);
     final policeCount = players.where((player) => player.role == 'police').length;
+    final responsive = AppResponsive.of(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -79,7 +82,12 @@ class _LobbyPageState extends ConsumerState<LobbyPage>
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 8, 10, 18),
+          padding: EdgeInsets.fromLTRB(
+            responsive.horizontalPadding,
+            8,
+            responsive.horizontalPadding,
+            responsive.isSmallPhone ? 14 : 18,
+          ),
           child: Column(
             children: [
               _MockLobbyTabBar(controller: _tabController),
@@ -180,6 +188,7 @@ class _LobbyRangeTab extends ConsumerWidget {
     );
     final points = room.polygonPoints;
     final center = points.isNotEmpty ? points.first : const LatLng(37.5665, 126.9780);
+    final responsive = AppResponsive.of(context);
 
     return Column(
       children: [
@@ -258,26 +267,22 @@ class _LobbyRangeTab extends ConsumerWidget {
         ),
         const SizedBox(height: 18),
         if (isHost)
-          Row(
+          AdaptiveActionGroup(
+            spacing: responsive.useStackedActions ? 12 : 18,
             children: [
-              Expanded(
-                child: _MockRectButton(
-                  label: '수정하기',
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const RangeSettingPage(),
-                      ),
-                    );
-                  },
-                ),
+              _MockRectButton(
+                label: '수정하기',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const RangeSettingPage(),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(width: 42),
-              Expanded(
-                child: _MockRectButton(
-                  label: '게임 시작',
-                  onPressed: () => _startGame(context, ref),
-                ),
+              _MockRectButton(
+                label: '게임 시작',
+                onPressed: () => _startGame(context, ref),
               ),
             ],
           )
@@ -310,7 +315,7 @@ class _LobbyPlayersTab extends ConsumerWidget {
   final int policeCount;
 
   Future<void> _copyInviteLink(BuildContext context) async {
-    final inviteLink = 'https://ckck.app/rooms/$roomId';
+    final inviteLink = buildRoomInviteLink(roomId);
     await Clipboard.setData(ClipboardData(text: inviteLink));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -320,6 +325,7 @@ class _LobbyPlayersTab extends ConsumerWidget {
   }
 
   Future<void> _showInviteDialog(BuildContext context) async {
+    final inviteLink = buildRoomInviteLink(roomId);
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -354,25 +360,21 @@ class _LobbyPlayersTab extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '방 링크 : https://ckck.app/rooms/$roomId',
+                        '방 링크 : $inviteLink',
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 14),
-                      Row(
+                      AdaptiveActionGroup(
+                        spacing: 12,
                         children: [
-                          Expanded(
-                            child: _MockRectButton(
-                              label: '복사하기',
-                              onPressed: () => _copyInviteLink(context),
-                            ),
+                          _MockRectButton(
+                            label: '복사하기',
+                            onPressed: () => _copyInviteLink(context),
                           ),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: _MockRectButton(
-                              label: '공유하기',
-                              onPressed: () => _copyInviteLink(context),
-                            ),
+                          _MockRectButton(
+                            label: '공유하기',
+                            onPressed: () => _copyInviteLink(context),
                           ),
                         ],
                       ),
@@ -383,7 +385,7 @@ class _LobbyPlayersTab extends ConsumerWidget {
                         color: Colors.white,
                         alignment: Alignment.center,
                         child: QrImageView(
-                          data: 'https://ckck.app/rooms/$roomId',
+                          data: inviteLink,
                           version: QrVersions.auto,
                           size: 176,
                           backgroundColor: Colors.white,
@@ -492,6 +494,7 @@ class _LobbyPlayersTab extends ConsumerWidget {
     final isReady = players.any(
       (player) => player.id == user.userId && player.isReady,
     );
+    final responsive = AppResponsive.of(context);
 
     return Column(
       children: [
@@ -530,20 +533,16 @@ class _LobbyPlayersTab extends ConsumerWidget {
         ),
         if (isHost) ...[
           const SizedBox(height: 18),
-          Row(
+          AdaptiveActionGroup(
+            spacing: responsive.useStackedActions ? 12 : 18,
             children: [
-              Expanded(
-                child: _MockRectButton(
-                  label: '초대하기',
-                  onPressed: () => _showInviteDialog(context),
-                ),
+              _MockRectButton(
+                label: '초대하기',
+                onPressed: () => _showInviteDialog(context),
               ),
-              const SizedBox(width: 42),
-              Expanded(
-                child: _MockRectButton(
-                  label: '경찰 지정',
-                  onPressed: () => _showPoliceDialog(context, ref),
-                ),
+              _MockRectButton(
+                label: '경찰 지정',
+                onPressed: () => _showPoliceDialog(context, ref),
               ),
             ],
           ),
@@ -633,6 +632,7 @@ class _LobbyRulesTab extends ConsumerWidget {
       (player) => player.id == user.userId && player.isReady,
     );
     final policePlayers = players.where((player) => player.role == 'police').toList();
+    final responsive = AppResponsive.of(context);
 
     return Column(
       children: [
@@ -748,20 +748,16 @@ class _LobbyRulesTab extends ConsumerWidget {
         ),
         const SizedBox(height: 18),
         if (isHost)
-          Row(
+          AdaptiveActionGroup(
+            spacing: responsive.useStackedActions ? 12 : 18,
             children: [
-              Expanded(
-                child: _MockRectButton(
-                  label: '수정하기',
-                  onPressed: () => _saveRules(context, ref),
-                ),
+              _MockRectButton(
+                label: '수정하기',
+                onPressed: () => _saveRules(context, ref),
               ),
-              const SizedBox(width: 42),
-              Expanded(
-                child: _MockRectButton(
-                  label: '게임 시작',
-                  onPressed: () => _startGame(context, ref),
-                ),
+              _MockRectButton(
+                label: '게임 시작',
+                onPressed: () => _startGame(context, ref),
               ),
             ],
           )

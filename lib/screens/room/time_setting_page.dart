@@ -3,6 +3,7 @@ import 'package:ckck_app/providers/players_provider.dart';
 import 'package:ckck_app/providers/room_provider.dart';
 import 'package:ckck_app/providers/user_provider.dart';
 import 'package:ckck_app/screens/room/lobby_page.dart';
+import 'package:ckck_app/widgets/adaptive_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -233,87 +234,86 @@ class _TimeSettingPageState extends ConsumerState<TimeSettingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final responsive = AppResponsive.of(context);
     return Scaffold(
       appBar: _buildAppBar(),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 260),
-              child: Column(
-                children: [
-                  const Spacer(flex: 2),
-                  _TimeDisplayBlock(
-                    label: '게임 제한 시간',
-                    value: _formatTime(_gameMinute, _gameSecond),
-                    onTap: _creating
-                        ? null
-                        : () => _showTimePicker(
-                              title: '게임 제한 시간',
-                              initialMinute: _gameMinute,
-                              initialSecond: _gameSecond,
-                              onChanged: (value) {
-                                setState(() {
-                                  _gameMinute = value.minute;
-                                  _gameSecond = value.second;
-                                });
-                              },
-                            ),
-                  ),
-                  const SizedBox(height: 72),
-                  _TimeDisplayBlock(
-                    label: '도둑이 숨을 시간',
-                    value: _formatTime(_hideMinute, _hideSecond),
-                    onTap: _creating
-                        ? null
-                        : () => _showTimePicker(
-                              title: '도둑이 숨을 시간',
-                              initialMinute: _hideMinute,
-                              initialSecond: _hideSecond,
-                              onChanged: (value) {
-                                setState(() {
-                                  _hideMinute = value.minute;
-                                  _hideSecond = value.second;
-                                });
-                              },
-                            ),
-                  ),
-                  const Spacer(flex: 3),
-                  Center(
-                    child: SizedBox(
-                      width: 110,
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFD9D9D9),
-                          foregroundColor: Colors.black,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
-                          ),
+      body: AdaptivePage(
+        scrollable: true,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: Column(
+            children: [
+              SizedBox(height: responsive.isSmallPhone ? 24 : 40),
+              _TimeDisplayBlock(
+                label: '게임 제한 시간',
+                value: _formatTime(_gameMinute, _gameSecond),
+                onTap: _creating
+                    ? null
+                    : () => _showTimePicker(
+                          title: '게임 제한 시간',
+                          initialMinute: _gameMinute,
+                          initialSecond: _gameSecond,
+                          onChanged: (value) {
+                            setState(() {
+                              _gameMinute = value.minute;
+                              _gameSecond = value.second;
+                            });
+                          },
                         ),
-                        onPressed: _creating ? null : _createRoom,
-                        child: _creating
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text(
-                                '완료',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+              ),
+              SizedBox(height: responsive.heroGap * 0.6),
+              _TimeDisplayBlock(
+                label: '도둑이 숨을 시간',
+                value: _formatTime(_hideMinute, _hideSecond),
+                onTap: _creating
+                    ? null
+                    : () => _showTimePicker(
+                          title: '도둑이 숨을 시간',
+                          initialMinute: _hideMinute,
+                          initialSecond: _hideSecond,
+                          onChanged: (value) {
+                            setState(() {
+                              _hideMinute = value.minute;
+                              _hideSecond = value.second;
+                            });
+                          },
+                        ),
+              ),
+              SizedBox(height: responsive.heroGap),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: responsive.primaryButtonMaxWidth,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFD9D9D9),
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
                       ),
                     ),
+                    onPressed: _creating ? null : _createRoom,
+                    child: _creating
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            '완료',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
-                  const Spacer(),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
