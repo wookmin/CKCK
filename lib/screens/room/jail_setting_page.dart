@@ -1,9 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:ckck_app/providers/room_provider.dart';
 import 'package:ckck_app/screens/room/time_setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 class JailSettingPage extends ConsumerStatefulWidget {
@@ -16,41 +17,58 @@ class JailSettingPage extends ConsumerStatefulWidget {
 class _JailSettingPageState extends ConsumerState<JailSettingPage> {
   static const LatLng _fallbackCenter = LatLng(37.5665, 126.9780);
   static const Distance _distance = Distance();
+  static const double _fallbackCircleRadiusPx = 24;
 
   final MapController _mapController = MapController();
   LatLng _selectedCenter = _fallbackCenter;
+  List<LatLng> _gamePolygonPoints = const [];
+  LatLngBounds? _gameBounds;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadLocation();
+    _loadInitialSelection();
   }
 
-  Future<void> _loadLocation() async {
-    try {
-      final enabled = await Geolocator.isLocationServiceEnabled();
-      if (!enabled) {
-        _finishLoading(_fallbackCenter);
-        return;
-      }
+  void _loadInitialSelection() {
+    final room = ref.read(roomProvider);
+    _gamePolygonPoints = room.polygonPoints;
+    _gameBounds = _gamePolygonPoints.length >= 4
+        ? LatLngBounds.fromPoints(_gamePolygonPoints)
+        : null;
 
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
+    final initialCenter = _gameBounds == null
+        ? _fallbackCenter
+        : LatLng(
+            (_gameBounds!.north + _gameBounds!.south) / 2,
+            (_gameBounds!.east + _gameBounds!.west) / 2,
+          );
+    _finishLoading(initialCenter);
+  }
 
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _finishLoading(_fallbackCenter);
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition();
-      _finishLoading(LatLng(position.latitude, position.longitude));
-    } catch (_) {
-      _finishLoading(_fallbackCenter);
+  LatLng _clampToBounds(LatLng point) {
+    final bounds = _gameBounds;
+    if (bounds == null) {
+      return point;
     }
+
+    return LatLng(
+      point.latitude.clamp(bounds.south, bounds.north),
+      point.longitude.clamp(bounds.west, bounds.east),
+    );
+  }
+
+  bool _isInsideBounds(LatLng point) {
+    final bounds = _gameBounds;
+    if (bounds == null) {
+      return true;
+    }
+
+    return point.latitude >= bounds.south &&
+        point.latitude <= bounds.north &&
+        point.longitude >= bounds.west &&
+        point.longitude <= bounds.east;
   }
 
   void _finishLoading(LatLng center) {
@@ -65,6 +83,17 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
+        return;
+      }
+      final bounds = _gameBounds;
+      if (bounds != null) {
+        _mapController.fitCamera(
+          CameraFit.bounds(
+            bounds: bounds,
+            padding: const EdgeInsets.all(36),
+            maxZoom: 18,
+          ),
+        );
         return;
       }
       _mapController.move(center, 18);
@@ -89,11 +118,23 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
   }
 
   double _circleRadiusPx(MapCamera camera) {
+    final mapSize = camera.nonRotatedSize;
+    if (!mapSize.width.isFinite ||
+        !mapSize.height.isFinite ||
+        mapSize.width <= 0 ||
+        mapSize.height <= 0) {
+      return _fallbackCircleRadiusPx;
+    }
+
     final eastPoint = _distance.offset(_selectedCenter, 5, 90);
     final centerOffset = camera.getOffsetFromOrigin(_selectedCenter);
     final eastOffset = camera.getOffsetFromOrigin(eastPoint);
     final radius = (eastOffset - centerOffset).distance;
-    return radius.clamp(18.0, 160.0);
+    if (!radius.isFinite || radius <= 0) {
+      return _fallbackCircleRadiusPx;
+    }
+
+    return math.max(radius, 1);
   }
 
   @override
@@ -113,7 +154,7 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
                       vertical: 10,
                     ),
                     child: const Text(
-                      '내 위치 주변 5m 범위가 감옥으로 지정됩니다.',
+                      '중앙 점 주변 5m 범위가 감옥으로 지정됩니다.',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -130,9 +171,14 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
                           options: MapOptions(
                             initialCenter: _selectedCenter,
                             initialZoom: 18,
+                            cameraConstraint: _gameBounds == null
+                                ? const CameraConstraint.unconstrained()
+                                : CameraConstraint.containCenter(
+                                    bounds: _gameBounds!,
+                                  ),
                             onPositionChanged: (camera, _) {
                               setState(() {
-                                _selectedCenter = camera.center;
+                                _selectedCenter = _clampToBounds(camera.center);
                               });
                             },
                           ),
@@ -142,12 +188,25 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
                                   'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                               userAgentPackageName: 'com.example.ckck',
                             ),
+                            if (_gamePolygonPoints.isNotEmpty)
+                              PolygonLayer(
+                                polygons: [
+                                  Polygon(
+                                    points: _gamePolygonPoints,
+                                    color: const Color(0x14FF3B30),
+                                    borderColor: const Color(0xFFFF3B30),
+                                    borderStrokeWidth: 3,
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                         IgnorePointer(
-                          child: Builder(
+                            child: Builder(
                             builder: (context) {
-                              final radius = _circleRadiusPx(_mapController.camera);
+                              final radius = _circleRadiusPx(
+                                _mapController.camera,
+                              );
 
                               return Stack(
                                 alignment: Alignment.center,
@@ -164,27 +223,16 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
                                       ),
                                     ),
                                   ),
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text(
-                                        '내 위치',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black,
-                                        ),
+                                  Transform.translate(
+                                    offset: Offset(0, -(radius + 28)),
+                                    child: const Text(
+                                      '감옥 위치',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black,
                                       ),
-                                      const SizedBox(height: 10),
-                                      Container(
-                                        width: 38,
-                                        height: 38,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.black,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ],
                               );
@@ -220,9 +268,18 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
                           ),
                         ),
                         onPressed: () {
+                          final jailCenter = _clampToBounds(_selectedCenter);
+                          if (!_isInsideBounds(jailCenter)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('감옥 위치는 게임 범위 안에서만 지정할 수 있어요.'),
+                              ),
+                            );
+                            return;
+                          }
                           ref
                               .read(roomProvider.notifier)
-                              .setJailLocation(_selectedCenter);
+                              .setJailLocation(jailCenter);
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(
                               builder: (_) => const TimeSettingPage(),

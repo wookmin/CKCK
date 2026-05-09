@@ -2,8 +2,6 @@ import 'package:ckck_app/providers/auth_provider.dart';
 import 'package:ckck_app/providers/user_provider.dart';
 import 'package:ckck_app/screens/home/join_room_page.dart';
 import 'package:ckck_app/screens/room/range_setting_page.dart';
-import 'package:ckck_app/widgets/primary_button.dart';
-import 'package:ckck_app/widgets/section_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,34 +54,68 @@ class _NicknamePageState extends ConsumerState<NicknamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('닉네임 설정')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          '닉네임 설정',
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SectionCard(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 44),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  widget.isHost ? '방장 닉네임' : '참가자 닉네임',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+                Container(
+                  color: const Color(0xFFD9D9D9),
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: TextField(
+                    controller: _controller,
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: widget.isHost ? '닉네임:' : '닉네임:',
+                      hintStyle: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
                       ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _controller,
-                  decoration: const InputDecoration(
-                    hintText: '닉네임 입력',
-                    border: OutlineInputBorder(),
+                    ),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                PrimaryButton(
-                  label: '완료',
-                  icon: Icons.check_rounded,
-                  onPressed: _submit,
+                const SizedBox(height: 96),
+                SizedBox(
+                  width: 86,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFD9D9D9),
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: const RoundedRectangleBorder(),
+                    ),
+                    onPressed: _submit,
+                    child: const Text(
+                      '완료',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
