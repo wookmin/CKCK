@@ -1,0 +1,34 @@
+name: ckck_app
+description: "GPS 기반 술래잡기 게임 앱"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  flutter_map: ^8.2.1
+  latlong2: ^0.9.1
+  geolocator: ^14.0.2
+  web_socket_channel: ^3.0.3
+  qr_flutter: ^4.1.0
+  flutter_secure_storage: ^9.2.4
+  mobile_scanner: ^7.1.1
+  dio: ^5.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+dependency_overrides:
+  path_provider_foundation: 2.5.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

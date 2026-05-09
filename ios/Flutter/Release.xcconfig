@@ -1,0 +1,4 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+#include "Generated.xcconfig"
+COCOAPODS_PARALLEL_CODE_SIGN=false
+FLUTTER_NATIVE_ASSETS=false
