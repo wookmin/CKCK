@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bash scripts/vercel-build.sh",
+  "buildCommand": "flutter build web",
   "outputDirectory": "build/web",
   "rewrites": [
     {
