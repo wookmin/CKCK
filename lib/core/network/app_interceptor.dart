@@ -1,17 +1,17 @@
 import 'package:dio/dio.dart';
-import 'package:ckck_app/core/session/session_store.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AppInterceptor extends Interceptor {
   AppInterceptor(this._storage);
 
-  final SessionStore _storage;
+  final FlutterSecureStorage _storage;
 
   @override
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _storage.read('accessToken');
+    final token = await _storage.read(key: 'accessToken');
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }

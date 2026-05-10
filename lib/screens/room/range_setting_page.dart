@@ -1,6 +1,5 @@
 import 'package:ckck_app/providers/room_provider.dart';
 import 'package:ckck_app/screens/room/jail_setting_page.dart';
-import 'package:ckck_app/widgets/adaptive_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +21,6 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
   Size? _mapViewportSize;
   double _zoom = 16;
   bool _loading = true;
-  String? _locationGuide;
 
   @override
   void initState() {
@@ -40,7 +38,6 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
 
       final enabled = await Geolocator.isLocationServiceEnabled();
       if (!enabled) {
-        _locationGuide = '위치 서비스가 꺼져 있어 데모 기본 위치로 시작합니다.';
         _finishLoading(savedCenter ?? _fallbackCenter);
         return;
       }
@@ -52,7 +49,6 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
 
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        _locationGuide = '위치 권한이 없어 데모 기본 위치로 시작합니다.';
         _finishLoading(savedCenter ?? _fallbackCenter);
         return;
       }
@@ -60,7 +56,6 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
       final position = await Geolocator.getCurrentPosition();
       _finishLoading(LatLng(position.latitude, position.longitude));
     } catch (_) {
-      _locationGuide = '현재 위치를 가져오지 못해 데모 기본 위치로 시작합니다.';
       _finishLoading(_fallbackCenter);
     }
   }
@@ -139,7 +134,6 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final responsive = AppResponsive.of(context);
     return Scaffold(
       appBar: _buildAppBar(),
       body: _loading
@@ -162,22 +156,6 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
                       ),
                     ),
                   ),
-                  if (_locationGuide != null)
-                    Container(
-                      width: double.infinity,
-                      margin: EdgeInsets.fromLTRB(
-                        responsive.horizontalPadding,
-                        10,
-                        responsive.horizontalPadding,
-                        0,
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      color: const Color(0xFFF1F5F9),
-                      child: Text(
-                        _locationGuide!,
-                        style: const TextStyle(color: Color(0xFF475569)),
-                      ),
-                    ),
                   const SizedBox(height: 14),
                   Expanded(
                     child: LayoutBuilder(
@@ -236,28 +214,27 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      responsive.horizontalPadding,
-                      20,
-                      responsive.horizontalPadding,
-                      responsive.isSmallPhone ? 20 : 28,
-                    ),
-                    child: AdaptiveActionGroup(
-                      spacing: responsive.useStackedActions ? 12 : 20,
+                    padding: const EdgeInsets.fromLTRB(32, 20, 32, 28),
+                    child: Row(
                       children: [
-                        _FlatMockButton(
-                          label: '복원',
-                          onPressed: _resetSelection,
+                        Expanded(
+                          child: _FlatMockButton(
+                            label: '복원',
+                            onPressed: _resetSelection,
+                          ),
                         ),
-                        _FlatMockButton(
-                          label: '확인',
-                          onPressed: () {
-                            final size = _mapViewportSize;
-                            if (size == null) {
-                              return;
-                            }
-                            _confirmSelection(size);
-                          },
+                        const SizedBox(width: 60),
+                        Expanded(
+                          child: _FlatMockButton(
+                            label: '확인',
+                            onPressed: () {
+                              final size = _mapViewportSize;
+                              if (size == null) {
+                                return;
+                              }
+                              _confirmSelection(size);
+                            },
+                          ),
                         ),
                       ],
                     ),

@@ -63,8 +63,6 @@ class RoomNotifier extends Notifier<RoomState> {
       jailLatLng: data.jailLocation,
       gameTime: data.gameDurationSeconds,
       hideTime: data.hideTimeSeconds,
-      taskLevel: data.taskLevel,
-      policeAbility: data.policeAbility,
     );
   }
 
@@ -74,8 +72,6 @@ class RoomNotifier extends Notifier<RoomState> {
       jailLocation: state.jailLatLng!,
       gameDurationSeconds: state.gameTime,
       hideTimeSeconds: state.hideTime,
-      taskLevel: state.taskLevel,
-      policeAbility: state.policeAbility,
     );
   }
 }

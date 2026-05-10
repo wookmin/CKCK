@@ -25,19 +25,21 @@ class MockAuthRepository implements AuthRepository {
 }
 
 class RemoteAuthRepository implements AuthRepository {
-  RemoteAuthRepository(Dio dio);
+  RemoteAuthRepository(this._dio);
+
+  final Dio _dio;
 
   @override
   Future<String> login(String id, String password) async {
-    throw UnimplementedError(
-      'RemoteAuthRepository.login will be wired when the backend API is ready.',
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/login',
+      data: {'id': id, 'password': password},
     );
+    return response.data?['accessToken'] as String;
   }
 
   @override
   Future<void> logout() async {
-    throw UnimplementedError(
-      'RemoteAuthRepository.logout will be wired when the backend API is ready.',
-    );
+    await _dio.post<void>('/auth/logout');
   }
 }

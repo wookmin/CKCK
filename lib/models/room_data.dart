@@ -6,16 +6,12 @@ class RoomData {
     required this.jailLocation,
     required this.gameDurationSeconds,
     required this.hideTimeSeconds,
-    required this.taskLevel,
-    required this.policeAbility,
   });
 
   final List<LatLng> polygon;
   final LatLng jailLocation;
   final int gameDurationSeconds;
   final int hideTimeSeconds;
-  final String taskLevel;
-  final String policeAbility;
 
   Map<String, dynamic> toJson() {
     return {
@@ -28,8 +24,6 @@ class RoomData {
       },
       'gameDurationSeconds': gameDurationSeconds,
       'hideTimeSeconds': hideTimeSeconds,
-      'taskLevel': taskLevel,
-      'policeAbility': policeAbility,
     };
   }
 
@@ -49,8 +43,6 @@ class RoomData {
       ),
       gameDurationSeconds: json['gameDurationSeconds'] as int? ?? 600,
       hideTimeSeconds: json['hideTimeSeconds'] as int? ?? 120,
-      taskLevel: json['taskLevel'] as String? ?? '중',
-      policeAbility: json['policeAbility'] as String? ?? '기본 추적',
     );
   }
 }
