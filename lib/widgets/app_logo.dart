@@ -7,7 +7,7 @@ class AppLogo extends StatelessWidget {
     this.showSubtitle = true,
   });
 
-  static const String assetPath = 'assets/logo.png';
+  static const String assetPath = 'assets/로고Y 1.png';
 
   final bool compact;
   final bool showSubtitle;
