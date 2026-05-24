@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppLogo extends StatelessWidget {
-  const AppLogo({
-    super.key,
-    this.compact = false,
-    this.showSubtitle = true,
-  });
+  const AppLogo({super.key, this.compact = false, this.showSubtitle = true});
 
-  static const String assetPath = 'assets/로고Y 1.png';
+  static const String assetPath = 'assets/logo.png';
 
   final bool compact;
   final bool showSubtitle;
@@ -19,11 +15,7 @@ class AppLogo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          assetPath,
-          width: compact ? 150 : 210,
-          fit: BoxFit.contain,
-        ),
+        Image.asset(assetPath, width: compact ? 150 : 210, fit: BoxFit.contain),
         if (showSubtitle) ...[
           const SizedBox(height: 12),
           Text(

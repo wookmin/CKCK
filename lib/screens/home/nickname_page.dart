@@ -1,6 +1,6 @@
 import 'package:ckck_app/providers/auth_provider.dart';
 import 'package:ckck_app/providers/user_provider.dart';
-import 'package:ckck_app/screens/home/join_room_page.dart';
+import 'package:ckck_app/screens/room/lobby_page.dart';
 import 'package:ckck_app/screens/room/range_setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,9 +9,11 @@ class NicknamePage extends ConsumerStatefulWidget {
   const NicknamePage({
     super.key,
     required this.isHost,
+    this.roomId,
   });
 
   final bool isHost;
+  final String? roomId;
 
   @override
   ConsumerState<NicknamePage> createState() => _NicknamePageState();
@@ -45,8 +47,9 @@ class _NicknamePageState extends ConsumerState<NicknamePage> {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            widget.isHost ? const RangeSettingPage() : const JoinRoomPage(),
+        builder: (_) => widget.isHost
+            ? const RangeSettingPage()
+            : LobbyPage(roomId: widget.roomId!),
       ),
     );
   }
@@ -84,7 +87,7 @@ class _NicknamePageState extends ConsumerState<NicknamePage> {
                     textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: widget.isHost ? '닉네임:' : '닉네임:',
+                      hintText: '닉네임:',
                       hintStyle: const TextStyle(
                         color: Colors.black,
                         fontSize: 18,

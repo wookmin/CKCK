@@ -1,6 +1,6 @@
 import 'package:ckck_app/providers/auth_provider.dart';
 import 'package:ckck_app/screens/auth/post_login_check_page.dart';
-import 'package:ckck_app/widgets/app_logo.dart';
+import 'package:ckck_app/widgets/mockup_background_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,9 +26,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (loggedIn) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => const PostLoginCheckPage(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const PostLoginCheckPage()),
       );
       return;
     }
@@ -48,52 +46,57 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const AppLogo(showSubtitle: false),
-                const SizedBox(height: 160),
-                SizedBox(
-                  width: 150,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFD9D9D9),
-                      foregroundColor: Colors.black,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(0),
+    return MockupBackgroundScaffold(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    SizedBox(height: constraints.maxHeight * 0.22),
+                    Image.asset(
+                      'assets/logo.png',
+                      width: 240,
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(height: constraints.maxHeight * 0.18),
+                    GestureDetector(
+                      onTap: authState.isLoading ? null : _submit,
+                      behavior: HitTestBehavior.opaque,
+                      child: SizedBox(
+                        width: 280,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Opacity(
+                              opacity: authState.isLoading ? 0.7 : 1,
+                              child: Image.asset(
+                                'assets/googleLogin.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            if (authState.isLoading)
+                              const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.black,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                    onPressed: authState.isLoading ? null : _submit,
-                    icon: authState.isLoading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.login_rounded),
-                    label: const Text(
-                      '구글 로그인',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
