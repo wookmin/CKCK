@@ -1,9 +1,10 @@
+import 'package:ckck_app/providers/auth_provider.dart';
 import 'package:ckck_app/providers/room_provider.dart';
+import 'package:ckck_app/screens/auth/login_page.dart';
 import 'package:ckck_app/screens/home/nickname_page.dart';
 import 'package:ckck_app/widgets/mockup_background_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 
 class JoinRoomPage extends ConsumerStatefulWidget {
   const JoinRoomPage({super.key});
@@ -15,7 +16,7 @@ class JoinRoomPage extends ConsumerStatefulWidget {
 class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
   final _roomController = TextEditingController();
   bool _joining = false;
-  bool _showQrScanner = false;
+  bool _loggingOut = false;
 
   @override
   void dispose() {
@@ -67,6 +68,24 @@ class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
     }
   }
 
+  Future<void> _logout() async {
+    if (_loggingOut) {
+      return;
+    }
+
+    setState(() => _loggingOut = true);
+    await ref.read(authProvider.notifier).logout();
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MockupBackgroundScaffold(
@@ -84,7 +103,13 @@ class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
                   children: [
                     Align(
                       alignment: Alignment.topRight,
-                      child: Image.asset('assets/logoutBtn.png', width: 56),
+                      child: GestureDetector(
+                        onTap: _logout,
+                        child: Opacity(
+                          opacity: _loggingOut ? 0.7 : 1,
+                          child: Image.asset('assets/logoutBtn.png', width: 56),
+                        ),
+                      ),
                     ),
                     SizedBox(height: constraints.maxHeight * 0.18),
                     Image.asset(
@@ -126,11 +151,7 @@ class _JoinRoomPageState extends ConsumerState<JoinRoomPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    SizedBox(
-                      height: _showQrScanner
-                          ? 28
-                          : constraints.maxHeight * 0.12,
-                    ),
+                    SizedBox(height: constraints.maxHeight * 0.12),
                     GestureDetector(
                       onTap: _joining
                           ? null

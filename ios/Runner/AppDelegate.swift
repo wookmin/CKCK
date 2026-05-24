@@ -7,6 +7,10 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    if let controller = window?.rootViewController as? FlutterViewController {
+      DeviceCheckChannelRegistrar.register(on: controller)
+    }
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

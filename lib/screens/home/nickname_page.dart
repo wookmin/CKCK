@@ -1,5 +1,6 @@
 import 'package:ckck_app/providers/auth_provider.dart';
 import 'package:ckck_app/providers/user_provider.dart';
+import 'package:ckck_app/screens/auth/login_page.dart';
 import 'package:ckck_app/screens/room/lobby_page.dart';
 import 'package:ckck_app/screens/room/range_setting_page.dart';
 import 'package:ckck_app/widgets/mockup_background_scaffold.dart';
@@ -55,6 +56,8 @@ class _NicknamePageState extends ConsumerState<NicknamePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return MockupBackgroundScaffold(
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -70,7 +73,26 @@ class _NicknamePageState extends ConsumerState<NicknamePage> {
                   children: [
                     Align(
                       alignment: Alignment.topRight,
-                      child: Image.asset('assets/logoutBtn.png', width: 56),
+                      child: GestureDetector(
+                        onTap: authState.isLoading
+                            ? null
+                            : () async {
+                                await ref.read(authProvider.notifier).logout();
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const LoginPage(),
+                                  ),
+                                  (route) => false,
+                                );
+                              },
+                        child: Opacity(
+                          opacity: authState.isLoading ? 0.7 : 1,
+                          child: Image.asset('assets/logoutBtn.png', width: 56),
+                        ),
+                      ),
                     ),
                     SizedBox(height: constraints.maxHeight * 0.2),
                     Image.asset(
