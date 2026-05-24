@@ -4,10 +4,12 @@ class DeviceCheckResult {
   const DeviceCheckResult({
     required this.success,
     required this.message,
+    required this.mode,
   });
 
   final bool success;
   final String message;
+  final String mode;
 }
 
 class DeviceCheckService {
@@ -30,16 +32,23 @@ class DeviceCheckService {
       final result = await _channel.invokeMapMethod<String, dynamic>(method);
       final success = result?['success'] == true;
       final message = (result?['message'] as String?) ?? '상태를 확인할 수 없어요.';
-      return DeviceCheckResult(success: success, message: message);
+      final mode = (result?['mode'] as String?) ?? 'error';
+      return DeviceCheckResult(
+        success: success,
+        message: message,
+        mode: mode,
+      );
     } on PlatformException catch (error) {
       return DeviceCheckResult(
         success: false,
         message: error.message ?? '기기 상태 확인 중 오류가 발생했어요.',
+        mode: 'error',
       );
     } catch (_) {
       return const DeviceCheckResult(
         success: false,
         message: '기기 상태 확인 중 오류가 발생했어요.',
+        mode: 'error',
       );
     }
   }

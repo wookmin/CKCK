@@ -90,15 +90,14 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
   }
 
   Rect _selectionRect(Size size) {
-    final width = size.width * 0.78;
-    final height = size.height * 0.52;
+    final width = size.width * 0.8;
+    final height = size.height * 0.66;
     final left = (size.width - width) / 2;
-    final top = size.height * 0.17;
+    final top = size.height * 0.2;
     return Rect.fromLTWH(left, top, width, height);
   }
 
-  void _resetSelection() {
-    ref.read(roomProvider.notifier).clearPolygon();
+  void _moveToCurrentLocation() {
     _mapController.move(_initialCenter, _zoom);
   }
 
@@ -122,111 +121,115 @@ class _RangeSettingPageState extends ConsumerState<RangeSettingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildRoomSettingAppBar(
-        context: context,
-        title: '게임 범위 설정',
-      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : RoomSettingBackground(
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
-                  child: Column(
-                    children: [
-                      const RoomSettingInfoCard(
-                        text: '지도를 움직여 게임 범위를 설정해 주세요.',
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final size = Size(
-                              constraints.maxWidth,
-                              constraints.maxHeight,
-                            );
-                            _mapViewportSize = size;
-                            final rect = _selectionRect(size);
+          : Column(
+              children: [
+                RoomSettingMockupHeader(
+                  title: '게임 범위 설정',
+                  onBack: () => Navigator.of(context).pop(),
+                ),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final size = Size(
+                        constraints.maxWidth,
+                        constraints.maxHeight,
+                      );
+                      _mapViewportSize = size;
+                      final rect = _selectionRect(size);
 
-                            return RoomSettingMapFrame(
-                              child: Stack(
-                                children: [
-                                  FlutterMap(
-                                    mapController: _mapController,
-                                    options: MapOptions(
-                                      initialCenter: _initialCenter,
-                                      initialZoom: _zoom,
-                                      onPositionChanged: (camera, _) {
-                                        _zoom = camera.zoom;
-                                      },
-                                    ),
-                                    children: [
-                                      TileLayer(
-                                        urlTemplate:
-                                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                        userAgentPackageName: 'com.example.ckck',
-                                      ),
-                                    ],
-                                  ),
-                                  IgnorePointer(
-                                    child: Stack(
-                                      children: [
-                                        Positioned.fill(
-                                          child: CustomPaint(
-                                            painter: _SelectionMaskPainter(rect),
-                                          ),
-                                        ),
-                                        Positioned.fromRect(
-                                          rect: rect,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: Colors.red,
-                                                width: 2,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(14, 22, 14, 0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: RoomSettingActionButton(
-                                label: '복원',
-                                onPressed: _resetSelection,
-                                isPrimary: false,
-                              ),
-                            ),
-                            const SizedBox(width: 18),
-                            Expanded(
-                              child: RoomSettingActionButton(
-                                label: '확인',
-                                onPressed: () {
-                                  final size = _mapViewportSize;
-                                  if (size == null) {
-                                    return;
-                                  }
-                                  _confirmSelection(size);
+                      return Stack(
+                        children: [
+                          Positioned.fill(
+                            child: FlutterMap(
+                              mapController: _mapController,
+                              options: MapOptions(
+                                initialCenter: _initialCenter,
+                                initialZoom: _zoom,
+                                onPositionChanged: (camera, _) {
+                                  _zoom = camera.zoom;
                                 },
                               ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate:
+                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.example.ckck',
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                          IgnorePointer(
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    painter: _SelectionMaskPainter(rect),
+                                  ),
+                                ),
+                                Positioned.fromRect(
+                                  rect: rect,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.red,
+                                        width: 2.4,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            top: 20,
+                            left: 10,
+                            right: 10,
+                            child: Center(
+                              child: Image.asset(
+                                'assets/mockups/rangeSetBubble.png',
+                                width: constraints.maxWidth * 0.78,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 22,
+                            bottom: 18,
+                            child: GestureDetector(
+                              onTap: _moveToCurrentLocation,
+                              child: Image.asset(
+                                'assets/mockups/nowLocationBtn.png',
+                                width: 100,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            right: 22,
+                            bottom: 18,
+                            child: GestureDetector(
+                              onTap: () {
+                                final size = _mapViewportSize;
+                                if (size == null) {
+                                  return;
+                                }
+                                _confirmSelection(size);
+                              },
+                              child: Image.asset(
+                                'assets/mockups/setLocationBtn.png',
+                                width: 100,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
-              ),
+              ],
             ),
     );
   }

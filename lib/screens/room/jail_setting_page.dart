@@ -124,157 +124,145 @@ class _JailSettingPageState extends ConsumerState<JailSettingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildRoomSettingAppBar(
-        context: context,
-        title: '감옥 범위 설정',
-      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : RoomSettingBackground(
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
-                  child: Column(
-                    children: [
-                      const RoomSettingInfoCard(
-                        text: '중앙 점 주변 5m 범위가 감옥으로 지정됩니다.',
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: RoomSettingMapFrame(
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              FlutterMap(
-                                mapController: _mapController,
-                                options: MapOptions(
-                                  initialCenter: _selectedCenter,
-                                  initialZoom: 18,
-                                  cameraConstraint: _gameBounds == null
-                                      ? const CameraConstraint.unconstrained()
-                                      : CameraConstraint.containCenter(
-                                          bounds: _gameBounds!,
-                                        ),
-                                  onPositionChanged: (camera, _) {
-                                    setState(() {
-                                      _selectedCenter = _clampToBounds(
-                                        camera.center,
-                                      );
-                                    });
-                                  },
+          : Column(
+              children: [
+                RoomSettingMockupHeader(
+                  title: '감옥 범위 설정',
+                  onBack: () => Navigator.of(context).pop(),
+                ),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Stack(
+                        children: [
+                          Positioned.fill(
+                            child: FlutterMap(
+                              mapController: _mapController,
+                              options: MapOptions(
+                                initialCenter: _selectedCenter,
+                                initialZoom: 18,
+                                cameraConstraint: _gameBounds == null
+                                    ? const CameraConstraint.unconstrained()
+                                    : CameraConstraint.containCenter(
+                                        bounds: _gameBounds!,
+                                      ),
+                                onPositionChanged: (camera, _) {
+                                  setState(() {
+                                    _selectedCenter = _clampToBounds(
+                                      camera.center,
+                                    );
+                                  });
+                                },
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate:
+                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.example.ckck',
                                 ),
-                                children: [
-                                  TileLayer(
-                                    urlTemplate:
-                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                    userAgentPackageName: 'com.example.ckck',
+                                if (_gamePolygonPoints.isNotEmpty)
+                                  PolygonLayer(
+                                    polygons: [
+                                      Polygon(
+                                        points: _gamePolygonPoints,
+                                        color: const Color(0x14FF3B30),
+                                        borderColor: const Color(0xFFFF3B30),
+                                        borderStrokeWidth: 3,
+                                      ),
+                                    ],
                                   ),
-                                  if (_gamePolygonPoints.isNotEmpty)
-                                    PolygonLayer(
-                                      polygons: [
-                                        Polygon(
-                                          points: _gamePolygonPoints,
-                                          color: const Color(0x14FF3B30),
-                                          borderColor: const Color(0xFFFF3B30),
-                                          borderStrokeWidth: 3,
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              ),
-                              IgnorePointer(
-                                child: Builder(
-                                  builder: (context) {
-                                    final radius = _circleRadiusPx(
-                                      _mapController.camera,
-                                    );
-
-                                    return Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        Container(
-                                          width: radius * 2,
-                                          height: radius * 2,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: const Color(0x26FF6B6B),
-                                            border: Border.all(
-                                              color: Colors.red,
-                                              width: 1.4,
-                                            ),
-                                          ),
-                                        ),
-                                        Transform.translate(
-                                          offset: Offset(0, -(radius + 28)),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 6,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.circular(
-                                                999,
-                                              ),
-                                              border: Border.all(
-                                                color: Colors.black,
-                                                width: 2,
-                                              ),
-                                            ),
-                                            child: const Text(
-                                              '감옥 위치',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w800,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(18, 18, 18, 18),
-                        child: RoomSettingInfoCard(
-                          text: '감옥으로 지정할 위치로 이동 후\n지정 버튼을 눌러 주세요!',
-                        ),
-                      ),
-                      SizedBox(
-                        width: 120,
-                        child: RoomSettingActionButton(
-                          label: '지정',
-                          onPressed: () {
-                            final jailCenter = _clampToBounds(_selectedCenter);
-                            if (!_isInsideBounds(jailCenter)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('감옥 위치는 게임 범위 안에서만 지정할 수 있어요.'),
-                                ),
-                              );
-                              return;
-                            }
-                            ref
-                                .read(roomProvider.notifier)
-                                .setJailLocation(jailCenter);
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const TimeSettingPage(),
+                          Positioned(
+                            top: 18,
+                            left: 10,
+                            right: 10,
+                            child: Center(
+                              child: Image.asset(
+                                'assets/mockups/setLocationBubble.png',
+                                width: constraints.maxWidth * 0.92,
+                                fit: BoxFit.contain,
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                            ),
+                          ),
+                          IgnorePointer(
+                            child: Builder(
+                              builder: (context) {
+                                final radius = _circleRadiusPx(
+                                  _mapController.camera,
+                                );
+
+                                return Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Container(
+                                      width: radius * 2,
+                                      height: radius * 2,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: const Color(0x18FF6B6B),
+                                        border: Border.all(
+                                          color: const Color(0xFFFF4A4A),
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    Image.asset(
+                                      'assets/mockups/jailMarker.png',
+                                      width: 62,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 22,
+                            child: Center(
+                              child: GestureDetector(
+                                onTap: () {
+                                  final jailCenter = _clampToBounds(
+                                    _selectedCenter,
+                                  );
+                                  if (!_isInsideBounds(jailCenter)) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          '감옥 위치는 게임 범위 안에서만 지정할 수 있어요.',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  ref
+                                      .read(roomProvider.notifier)
+                                      .setJailLocation(jailCenter);
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const TimeSettingPage(),
+                                    ),
+                                  );
+                                },
+                                child: Image.asset(
+                                  'assets/mockups/setLocationBtn.png',
+                                  width: 100,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
-              ),
+              ],
             ),
     );
   }

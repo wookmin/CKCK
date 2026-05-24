@@ -1,5 +1,54 @@
 import 'package:flutter/material.dart';
 
+class RoomSettingMockupHeader extends StatelessWidget {
+  const RoomSettingMockupHeader({
+    super.key,
+    required this.title,
+    required this.onBack,
+  });
+
+  final String title;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.paddingOf(context).top;
+
+    return Container(
+      color: const Color(0xFFFFC400),
+      padding: EdgeInsets.only(top: topPadding + 12, left: 16, right: 16, bottom: 18),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: const Padding(
+              padding: EdgeInsets.all(6),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.black,
+                size: 28,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 40),
+        ],
+      ),
+    );
+  }
+}
+
 PreferredSizeWidget buildRoomSettingAppBar({
   required BuildContext context,
   required String title,

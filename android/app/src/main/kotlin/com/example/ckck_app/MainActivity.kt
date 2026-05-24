@@ -42,12 +42,14 @@ class MainActivity : FlutterActivity() {
         return if (isConnected) {
             mapOf(
                 "success" to true,
-                "message" to "이어폰 또는 외부 오디오 장치가 연결되어 있어요."
+                "message" to "이어폰 또는 외부 오디오 장치가 연결되어 있어요.",
+                "mode" to "success_auto"
             )
         } else {
             mapOf(
                 "success" to false,
-                "message" to "이어폰 또는 블루투스 오디오를 연결한 뒤 다시 확인해 주세요."
+                "message" to "이어폰 또는 블루투스 오디오를 연결한 뒤 다시 확인해 주세요.",
+                "mode" to "error"
             )
         }
     }
@@ -57,17 +59,20 @@ class MainActivity : FlutterActivity() {
         return when {
             adapter == null -> mapOf(
                 "success" to false,
-                "message" to "이 기기는 NFC를 지원하지 않아요."
+                "message" to "이 기기는 NFC를 지원하지 않아요.",
+                "mode" to "unsupported"
             )
 
             !adapter.isEnabled -> mapOf(
                 "success" to false,
-                "message" to "NFC가 꺼져 있어요. 설정에서 NFC를 켜 주세요."
+                "message" to "NFC가 꺼져 있어요. 설정에서 NFC를 켜 주세요.",
+                "mode" to "error"
             )
 
             else -> mapOf(
                 "success" to true,
-                "message" to "NFC를 사용할 수 있어요."
+                "message" to "NFC를 사용할 수 있어요.",
+                "mode" to "success_auto"
             )
         }
     }

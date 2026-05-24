@@ -124,41 +124,44 @@ class _TimeSettingPageState extends ConsumerState<TimeSettingPage> {
           context: context,
           builder: (context) {
             return Dialog(
-              backgroundColor: const Color(0xFFD9D9D9),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(0),
-              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24),
               child: SizedBox(
                 width: 340,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(28, 34, 28, 26),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        '방을 생성하시겠습니까?',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 42),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/mockups/createRoomModal.png',
+                      fit: BoxFit.contain,
+                    ),
+                    Positioned(
+                      bottom: 22,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          _DialogActionButton(
-                            label: '아니요',
-                            onPressed: () => Navigator.of(context).pop(false),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(false),
+                            child: Image.asset(
+                              'assets/mockups/cancelBtn.png',
+                              width: 64,
+                              fit: BoxFit.contain,
+                            ),
                           ),
-                          const SizedBox(width: 56),
-                          _DialogActionButton(
-                            label: '예',
-                            onPressed: () => Navigator.of(context).pop(true),
+                          const SizedBox(width: 44),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(true),
+                            child: Image.asset(
+                              'assets/mockups/createBtn.png',
+                              width: 64,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -337,42 +340,6 @@ class _TimeDisplayBlock extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _DialogActionButton extends StatelessWidget {
-  const _DialogActionButton({
-    required this.label,
-    required this.onPressed,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 82,
-      child: FilledButton(
-        style: FilledButton.styleFrom(
-          backgroundColor: const Color(0xFFBEBEBE),
-          foregroundColor: Colors.black,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0),
-          ),
-        ),
-        onPressed: onPressed,
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
     );
   }
 }

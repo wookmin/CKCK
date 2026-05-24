@@ -10,8 +10,7 @@ class PostLoginCheckPage extends ConsumerStatefulWidget {
   const PostLoginCheckPage({super.key});
 
   @override
-  ConsumerState<PostLoginCheckPage> createState() =>
-      _PostLoginCheckPageState();
+  ConsumerState<PostLoginCheckPage> createState() => _PostLoginCheckPageState();
 }
 
 class _PostLoginCheckPageState extends ConsumerState<PostLoginCheckPage> {
@@ -55,6 +54,23 @@ class _PostLoginCheckPageState extends ConsumerState<PostLoginCheckPage> {
       return;
     }
 
+    if (result.mode == 'requires_manual_enable') {
+      setState(() => _nfcStatus = _DeviceCheckStatus.idle);
+      final confirmed = await _showLegacyNfcSetupSheet();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _nfcStatus = confirmed
+            ? _DeviceCheckStatus.success
+            : _DeviceCheckStatus.idle;
+      });
+      if (confirmed) {
+        _showStatusMessage('수동 NFC 설정 완료로 처리했어요.');
+      }
+      return;
+    }
+
     setState(() {
       _nfcStatus = result.success
           ? _DeviceCheckStatus.success
@@ -64,9 +80,95 @@ class _PostLoginCheckPageState extends ConsumerState<PostLoginCheckPage> {
   }
 
   void _showStatusMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<bool> _showLegacyNfcSetupSheet() async {
+    return await showModalBottomSheet<bool>(
+          context: context,
+          backgroundColor: const Color(0xFFFFFAEC),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          builder: (context) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'iPhone 7 / 8 / X 설정 안내',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      '이 모델은 NFC를 수동으로 켜야 해요.\n'
+                      '1. 제어 센터에 NFC 태그 리더를 추가하세요.\n'
+                      '2. 제어 센터를 열고 NFC 리더를 눌러 주세요.\n'
+                      '3. 설정이 끝났다면 아래 버튼을 눌러 주세요.',
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.45,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.black,
+                              side: const BorderSide(
+                                color: Colors.black,
+                                width: 2,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text(
+                              '취소',
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFC400),
+                              foregroundColor: Colors.black,
+                              side: const BorderSide(
+                                color: Colors.black,
+                                width: 2,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text(
+                              '설정 완료',
+                              style: TextStyle(fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ) ??
+        false;
   }
 
   Future<void> _logout() async {
@@ -136,17 +238,15 @@ class _PostLoginCheckPageState extends ConsumerState<PostLoginCheckPage> {
                     GestureDetector(
                       onTap: _canStart
                           ? () {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const HomePage(),
-                          ),
-                          (route) => false,
-                        );
-                      }
-                          : () {
-                              _showStatusMessage(
-                                '이어폰 연결과 NFC 확인을 모두 완료해 주세요.',
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const HomePage(),
+                                ),
+                                (route) => false,
                               );
+                            }
+                          : () {
+                              _showStatusMessage('이어폰 연결과 NFC 확인을 모두 완료해 주세요.');
                             },
                       child: Opacity(
                         opacity: _canStart ? 1 : 0.55,
@@ -222,8 +322,8 @@ class _CheckAssetButton extends StatelessWidget {
             ),
           if (status == _DeviceCheckStatus.failure)
             Positioned(
-              top: 8,
-              right: 16,
+              top: 10,
+              right: 10,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -266,9 +366,4 @@ class _CheckAssetButton extends StatelessWidget {
   }
 }
 
-enum _DeviceCheckStatus {
-  idle,
-  checking,
-  success,
-  failure,
-}
+enum _DeviceCheckStatus { idle, checking, success, failure }
